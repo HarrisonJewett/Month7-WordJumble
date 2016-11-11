@@ -214,13 +214,13 @@ public:
 	SLLIter<Type>& operator++()
 	{
 		prev = iter;
-		if (iter == nullptr)
+		if (iter != nullptr)
 		{
+			if (iter->next == nullptr)
+				iter = nullptr;
+			else
+				iter = iter->next;
 		}
-		else if (iter->next == nullptr)
-			iter = nullptr;
-		else
-			iter = iter->next;
 		return *this;
 	}
 

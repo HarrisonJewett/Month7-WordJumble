@@ -2,6 +2,7 @@
 #include "SLList.h"
 #include <cstring>
 #include <string>
+#include <ctime>
 #define TABLE_SIZE 500;
 
 using namespace std;
@@ -24,7 +25,7 @@ public:
 	HTable(unsigned int numOfBuckets, unsigned int(*hFunction) (const Type &v))
 	{
 		buckets = numOfBuckets;
-		table = new SLList<Type>[buckets];
+		theTable = new SLList<Type>[buckets];
 		this->hFunction = hFunction;
 	}
 
@@ -41,7 +42,7 @@ public:
 		if (this != &that)
 		{
 			delete[]theTable;
-			table = new SLList<Type>[that.buckets];
+			theTable = new SLList<Type>[that.buckets];
 			buckets = that.buckets;
 			for (unsigned int i = 0; i < buckets; ++i)
 			{
@@ -57,7 +58,7 @@ public:
 	HTable(const HTable<Type>& that)
 	{
 		buckets = that.buckets;
-		table = new SLList<Type>[that.buckets];
+		theTable = new SLList<Type>[that.buckets];
 		for (unsigned int i = 0; i < buckets; ++i)
 			table[i] = that.table[i];
 		hFunction = that.hFunction;
@@ -67,7 +68,7 @@ public:
 	void insert(const Type& v)
 	{
 		unsigned int bucketNeeded = hFunction(v);
-		table[bucketNeeded].addHead(v);
+		theTable[bucketNeeded].addHead(v);
 	}
 
 	//Find and Remove
@@ -110,7 +111,25 @@ public:
 		return -1;
 	}
 
+	string findSixString()
+	{
+		srand(static_cast<int>(time(0)));
 
+		string sixLetterString = " ";
+		
+
+		while (sixLetterString.length() != 6)
+		{			
+			int RNG = (rand() % 4999);
+			int loopingLength = (rand() % theTable[RNG].size());
+			SLLIter<string> Iter(theTable[RNG]);
+			Iter.begin();
+			for (int i = 0; i < loopingLength && !Iter.end(); ++i, ++Iter);
+			
+			sixLetterString = Iter.current();
+		}
+		return sixLetterString;
+	}
 
 	void HTable<Type>::printSomeStuff(const char* filePath = "hashdata.txt")
 	{
@@ -127,7 +146,7 @@ public:
 			unsigned int hiIndex = 0;
 
 			// loop through all the buckets
-			for (unsigned int i = 0; i < numBuck; ++i)
+			for (unsigned int i = 0; i < buckets; ++i)
 			{
 				// add the number of elements in each bucket to the total count
 				totalCount += theTable[i].size();
@@ -145,9 +164,9 @@ public:
 				else if (theTable[i].size() > theTable[hiIndex].size())
 					hiIndex = i;
 			}
-
+			
 			// print the total count of items and number of buckets to the file
-			outFile << '\n' << totalCount << " Total items stored in " << numBuck << " buckets\n";
+			outFile << '\n' << totalCount << " Total items stored in " << buckets << " buckets\n";
 			// print the number of empty buckets
 			outFile << '\n' << empty << " Buckets are empty\n\n";
 			// get the number of elements in the emptiest bucket
@@ -167,7 +186,7 @@ public:
 			// 3 buckets have 15 items
 			// 5 buckets have 16 items
 			// etc.
-			for (unsigned int k = 0; k < numBuck; ++k)
+			for (unsigned int k = 0; k < buckets; ++k)
 				++arr[theTable[k].size() - Low];
 
 			// now print this data to the file
@@ -185,10 +204,9 @@ public:
 // a method to the hash table to give us some basic information about
 // the hash function we have chosen (distribution info, #of empty 
 // buckets, etc.)
-
 // in my particular hash table class, my data members are-
 //	SLList<Type>* theTable 	- this is the array of lists
-//	unsigned int numBuck 	- this is the number of buckets
+//	unsigned int buckets 	- this is the number of buckets
 // ...you will want to crtl+h (find and replace) all instances
 // of these with variable names that match your own data members
 
