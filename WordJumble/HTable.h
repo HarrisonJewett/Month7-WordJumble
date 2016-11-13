@@ -30,7 +30,7 @@ public:
 	}
 
 	//Default deconstructor
-	~HTable() 
+	~HTable()
 	{
 		//clear();
 		delete[]theTable;
@@ -99,7 +99,7 @@ public:
 	//Find
 	int find(const Type& v) const
 	{
-		SLLIter<Type> iter(table[hFunction(v)]);
+		SLLIter<Type> iter(theTable[hFunction(v)]);
 		iter.begin();
 		while (iter.end() == false)
 		{
@@ -114,18 +114,14 @@ public:
 	string findSixString()
 	{
 		srand(static_cast<int>(time(0)));
-
 		string sixLetterString = " ";
-		
-
 		while (sixLetterString.length() != 6)
-		{			
+		{
 			int RNG = (rand() % 4999);
-			int loopingLength = (rand() % theTable[RNG].size());
+			int loopingLength = (rand() % theTable[RNG].size() - 1);
 			SLLIter<string> Iter(theTable[RNG]);
 			Iter.begin();
 			for (int i = 0; i < loopingLength && !Iter.end(); ++i, ++Iter);
-			
 			sixLetterString = Iter.current();
 		}
 		return sixLetterString;
@@ -164,7 +160,7 @@ public:
 				else if (theTable[i].size() > theTable[hiIndex].size())
 					hiIndex = i;
 			}
-			
+
 			// print the total count of items and number of buckets to the file
 			outFile << '\n' << totalCount << " Total items stored in " << buckets << " buckets\n";
 			// print the number of empty buckets
