@@ -13,6 +13,5 @@ int main(int argc, char** argv)
 	gp.Load();
 	gp.Play();
 
-
 	return 0;
 }

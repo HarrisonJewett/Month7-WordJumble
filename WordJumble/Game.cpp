@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <conio.h>
 #include <ctime>
+#include <fstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -12,6 +14,7 @@ Game::Game()
 	correctGuess = false;
 	score = 0;
 	level = 1;
+	nameForScore = "";
 }
 
 
@@ -23,21 +26,26 @@ unsigned int hFunction(const string& stringIn)
 	{
 		a += stringIn[i] * 2;
 		b *= stringIn[i] << 1;
-		b = ~b << 1;
+		//b = ~b << 1;
 	}
 	a = (a*b);
 	return (a*b) % 4999;
 }
 
 Game::~Game()
-{
-
-}
+{}
 
 void Game::Load()
 {
 	hashPointer = new HTable<string>(4999, hFunction);
 	loadDictionary();
+	for (int i = 0; i < 5; ++i)
+	{
+		HS[i].highscore = "";
+		HS[i].name = "";
+	}
+	loadHighscore();
+	
 }
 
 void Game::loadDictionary()
@@ -71,7 +79,7 @@ void Game::loadDictionary()
 }
 
 string Game::jumbleString(string wordToJumble)
-{	
+{
 	char temp;
 	int RNG;
 	for (unsigned int i = 0; i < 6; ++i)
@@ -98,7 +106,7 @@ void Game::Play()
 	{
 		Update();
 		Render();
-	}	
+	}
 }
 
 void Game::Update()
@@ -132,13 +140,12 @@ void Game::Update()
 			if (hashPointer->find(typedWord) != -1)
 			{
 				searchTree.insert(typedWord);
-				score += typedWord.length() * level;
-			}
-
-			if (wordToGuess == typedWord)
-				correctGuess = true;
+				score += factorial(typedWord.length());
+				if (wordToGuess.length() == 6)
+					correctGuess = true;
+			}			
 		}
-		
+
 		while (typedWord.length() > 0)
 		{
 			remainingLetters.push_back(typedWord[typedWord.length() - 1]);
@@ -159,8 +166,8 @@ void Game::Render()
 {
 	system("cls");
 
-	cout << "Time remaining:" << 60 - time.getElapsedTime()/1000 << "      Score:" << score <<"\n\n";
-	cout << jumbledWord << "    " << wordToGuess;	
+	cout << "Time remaining:" << 60 - time.getElapsedTime() / 1000 << "      Score:" << score << "\n\n";
+	cout << jumbledWord;
 
 	cout << '\n' << typedWord;
 
@@ -175,9 +182,22 @@ void Game::Render()
 	{
 		if (!correctGuess)
 			cout << "\n\nThe correct guess was " << wordToGuess << "\nYour final score was: " << score;
-			
+
 		endRound();
 	}
+}
+
+unsigned int Game::factorial(unsigned int f)
+{
+	unsigned int temp = f;
+	for (int i = f - 1; i > 1; --i)
+		temp *= i;
+	return temp;
+}
+
+bool sortMyArray(singleHighscore a, singleHighscore b)
+{
+	return a.highscore > b.highscore;
 }
 
 void Game::endRound()
@@ -186,6 +206,22 @@ void Game::endRound()
 		cout << "\n\nCongragulations, you won the round! Would you like to continue? \nPress Enter to proceed to level " << level + 1 << ". Press ESC to quit";
 	else
 		cout << "\n\nPress ENTER to try again, press ESC to quit";
+
+	int i = 0;
+	if (HS[i].highscore == "")
+	{
+		cout << "\n\nNo current highscores, press ESC to quit and save yours!";
+	}
+	else
+	{		
+		cout << "\n\n Current highscores";
+
+		while (HS[i].highscore != "" && i < 5)
+		{
+			cout << '\n' << HS[i].name << ": " << HS[i].highscore;
+			++i;
+		}
+	}
 
 	while (true)
 	{
@@ -206,7 +242,69 @@ void Game::endRound()
 		if (GetAsyncKeyState(VK_ESCAPE))
 		{
 			contPlay = false;
+			system("cls");
+			cout << "Enter your 3 letter initials to save your highscore:" << '\n';
+			cin >> nameForScore;
+			int i = 0;
+			while (i < 5 && HS[i].highscore != "")
+			{
+				if (i = 4)
+				{
+					compare = score;
+					if (HS[i].highscore < compare)
+					{
+						HS[i].name = nameForScore;
+						HS[i].highscore = to_string(score);
+					}
+				}				
+				++i;
+			}
+
+			if (HS[i].highscore == "")
+			{
+				HS[i].highscore = to_string(score);
+				HS[i].name = nameForScore;
+			}
+
+			sort(begin(HS), end(HS), sortMyArray);
+
+			saveHighscore();
 			break;
 		}
 	}
+}
+
+void Game::loadHighscore()
+{
+	ifstream loadScores("Top_5_Highscores.txt");
+
+
+	if (loadScores.is_open())
+	{
+		int i = 0;
+		while (!loadScores.eof())
+		{
+			getline(loadScores, HS[i].name, ':');
+			getline(loadScores, HS[i].highscore);
+			++i;
+		}
+	}
+
+	loadScores.close();
+}
+
+void Game::saveHighscore()
+{
+	ofstream outScores("Top_5_Highscores.txt");
+
+	if (outScores.is_open())
+	{
+		for (int i = 0; i < 5; ++i)
+		{
+			if (HS[i].name == "")
+				break;
+			outScores << HS[i].name << ": " << HS[i].highscore << '\n';
+		}
+	}
+	outScores.close();
 }

@@ -118,11 +118,14 @@ public:
 		while (sixLetterString.length() != 6)
 		{
 			int RNG = (rand() % 4999);
-			int loopingLength = (rand() % theTable[RNG].size() - 1);
-			SLLIter<string> Iter(theTable[RNG]);
-			Iter.begin();
-			for (int i = 0; i < loopingLength && !Iter.end(); ++i, ++Iter);
-			sixLetterString = Iter.current();
+			if (theTable[RNG].size() != 0)
+			{
+				int loopingLength = (rand() % theTable[RNG].size());
+				SLLIter<string> Iter(theTable[RNG]);
+				Iter.begin();
+				for (int i = 0; i < loopingLength && !Iter.end(); ++i, ++Iter);
+				sixLetterString = Iter.current();
+			}
 		}
 		return sixLetterString;
 	}
